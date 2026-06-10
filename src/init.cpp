@@ -1614,7 +1614,7 @@ bool UserProtocolRulesConsent()
         "For more information, see: %s"
     ),
         CLIENT_NAME,
-        "https://bitcoinknots.org/learn/2026-rdts");
+        "https://btcwave.app/learn/2026-rdts");
     const bilingual_str msg_manual_suffix = strprintf(_(
         "To confirm this upgrade, add to your %s file: %s"
     ),
@@ -1739,7 +1739,7 @@ bool AppInitMain(NodeContext& node, interfaces::BlockAndHeaderTipInfo* tip_info)
             g_local_services = ServiceFlags(g_local_services & ~NODE_REDUCED_DATA);
             scheduler.scheduleEvery([]{
                 LogError("RDTS is not enabled. This node is therefore vulnerable to displaying fake or fraudulent transactions.\n");
-                LogError("For more information, see: %s\n", "https://bitcoinknots.org/learn/2026-rdts");
+                LogError("For more information, see: %s\n", "https://btcwave.app/learn/2026-rdts");
                 LogError("To enable RDTS enforcement and disable this warning, add to %s: %s\n",
                     gArgs.GetPathArg("-conf", BITCOIN_CONF_FILENAME).utf8string(),
                     CONSENSUSRULES_CONFIG_NAME + "=" + CONSENSUSRULES_REQUIRED);
@@ -1749,7 +1749,7 @@ bool AppInitMain(NodeContext& node, interfaces::BlockAndHeaderTipInfo* tip_info)
             g_rdts_warning = true;
             scheduler.scheduleEvery([]{
                 LogError("This software applies the BIP110/RDTS network upgrade, which fixes critical vulnerabilities, but explicit user confirmation has not been configured.\n");
-                LogError("For more information, see: %s\n", "https://bitcoinknots.org/learn/2026-rdts");
+                LogError("For more information, see: %s\n", "https://btcwave.app/learn/2026-rdts");
                 LogError("To confirm this upgrade and dismiss this warning, add to your %s file: %s\n",
                     gArgs.GetPathArg("-conf", BITCOIN_CONF_FILENAME).utf8string(),
                     CONSENSUSRULES_CONFIG_NAME + "=" + CONSENSUSRULES_REQUIRED);

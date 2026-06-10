@@ -26,7 +26,7 @@ get_directory_property(precious_variables CACHE_VARIABLES)
 #=============================
 # Project / Package metadata
 #=============================
-set(CLIENT_NAME "Bitcoin Knots")
+set(CLIENT_NAME "Bitcoin Wave")
 set(CLIENT_VERSION_MAJOR 29)
 set(CLIENT_VERSION_MINOR 3)
 set(CLIENT_VERSION_BUILD 0)
@@ -34,7 +34,7 @@ set(CLIENT_VERSION_RC 0)
 set(CLIENT_VERSION_IS_RELEASE "true")
 set(COPYRIGHT_YEAR "2026")
 
-set(CLIENT_VERSION_SUFFIX ".knots20260508")
+set(CLIENT_VERSION_SUFFIX ".wave20260610")
 
 # During the enabling of the CXX and CXXOBJ languages, we modify
 # CMake's compiler/linker invocation strings by appending the content
@@ -55,7 +55,7 @@ set(CMAKE_TRY_COMPILE_PLATFORM_VARIABLES
 project(BitcoinCore
   VERSION ${CLIENT_VERSION_MAJOR}.${CLIENT_VERSION_MINOR}.${CLIENT_VERSION_BUILD}
   DESCRIPTION "Bitcoin client software"
-  HOMEPAGE_URL "https://bitcoinknots.org/"
+  HOMEPAGE_URL "https://btcwave.app/"
   LANGUAGES NONE
 )
 
@@ -66,7 +66,7 @@ endif()
 
 set(COPYRIGHT_HOLDERS "The %s developers")
 set(COPYRIGHT_HOLDERS_FINAL "The ${CLIENT_NAME} developers")
-set(CLIENT_BUGREPORT "https://github.com/bitcoinknots/bitcoin/issues")
+set(CLIENT_BUGREPORT "https://github.com/btcwave/btcwave/issues")
 
 #=============================
 # Language setup
@@ -325,14 +325,14 @@ if(BUILD_DAEMON OR BUILD_GUI OR BUILD_KERNEL_LIB)
   if(NOT RDTS_CONSENT IN_LIST RDTS_CONSENT_OPTIONS)
     message(FATAL_ERROR
       "RDTS_CONSENT is not set.\n"
-      "This version of Bitcoin Knots applies the BIP110 (RDTS) network upgrade, which fixes critical vulnerabilities in long-standing network design. To avoid applying this upgrade by accident, please choose whether to accept it now, or defer explicit confirmation until runtime.\n"
+      "This version of Bitcoin Wave applies the BIP110 (RDTS) network upgrade, which fixes critical vulnerabilities in long-standing network design. To avoid applying this upgrade by accident, please choose whether to accept it now, or defer explicit confirmation until runtime.\n"
       "Important: Because this upgrade already has broad community support, reverting to an older software version does not reject it. Running outdated software after any network upgrade only leaves your node vulnerable to displaying fake or fraudulent transactions. To effectively reject this upgrade, you need to run alternative software designed to split away from the upgraded network.\n"
       "To accept this upgrade now, add to your CMake options:\n"
       "  -D RDTS_CONSENT=IMPLICIT\n"
       "Or to defer explicit confirmation until runtime (via GUI prompt or consensusrules=rdts config setting):\n"
       "  -D RDTS_CONSENT=RUNTIME_CHECK    (causes bitcoind to exit if absent)\n"
       "  -D RDTS_CONSENT=RUNTIME_WARN     (causes bitcoind to warn hourly if absent)\n"
-      "For more information, see: https://bitcoinknots.org/learn/2026-rdts"
+      "For more information, see: https://btcwave.app/learn/2026-rdts"
     )
   endif()
 else()
