@@ -1,0 +1,95 @@
+name: Track upstream Knots
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # daily at 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync-upstream:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout wave branch
+        uses: actions/checkout@v4
+        with:
+          ref: wave
+          fetch-depth: 0
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/bitcoinknots/bitcoin.git || true
+          git fetch upstream 29.x-knots
+
+      - name: Check for new upstream commits
+        id: check
+        run: |
+          LOCAL=$(git rev-parse origin/29.x-knots 2>/dev/null || echo "none")
+          UPSTREAM=$(git rev-parse upstream/29.x-knots)
+          if [ "$LOCAL" = "$UPSTREAM" ]; then
+            echo "up_to_date=true" >> "$GITHUB_OUTPUT"
+            echo "No new upstream commits"
+          else
+            echo "up_to_date=false" >> "$GITHUB_OUTPUT"
+            echo "New upstream commits found"
+            git log --oneline "$LOCAL..$UPSTREAM" | head -20
+          fi
+
+      - name: Sync upstream branch
+        if: steps.check.outputs.up_to_date == 'false'
+        run: |
+          git fetch upstream 29.x-knots
+          git push origin upstream/29.x-knots:refs/heads/29.x-knots
+
+      - name: Attempt merge into wave
+        if: steps.check.outputs.up_to_date == 'false'
+        id: merge
+        run: |
+          BRANCH="upstream-sync-$(date +%Y%m%d)"
+          git checkout -b "$BRANCH" origin/wave
+          if git merge upstream/29.x-knots --no-edit; then
+            echo "conflict=false" >> "$GITHUB_OUTPUT"
+          else
+            git merge --abort
+            echo "conflict=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          git push origin "$BRANCH"
+
+      - name: Create PR (clean merge)
+        if: steps.check.outputs.up_to_date == 'false' && steps.merge.outputs.conflict == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          UPSTREAM_HEAD=$(git rev-parse upstream/29.x-knots)
+          gh pr create \
+            --base wave \
+            --head "${{ steps.merge.outputs.branch }}" \
+            --title "Sync upstream Knots $(date +%Y-%m-%d)" \
+            --body "Automated merge of upstream Bitcoin Knots changes into wave branch.
+
+          Upstream HEAD: \`${UPSTREAM_HEAD}\`
+
+          This merge applied cleanly. Review the changes and merge when ready."
+
+      - name: Create PR (conflicts)
+        if: steps.check.outputs.up_to_date == 'false' && steps.merge.outputs.conflict == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          UPSTREAM_HEAD=$(git rev-parse upstream/29.x-knots)
+          gh pr create \
+            --base wave \
+            --head "${{ steps.merge.outputs.branch }}" \
+            --title "Sync upstream Knots $(date +%Y-%m-%d) — CONFLICTS" \
+            --body "Automated sync of upstream Bitcoin Knots changes.
+
+          Upstream HEAD: \`${UPSTREAM_HEAD}\`
+
+          **Merge conflicts detected.** This branch contains the upstream changes but the merge into wave needs manual conflict resolution.
+
+          Conflicts likely in Wave-modified files (CMakeLists.txt, clientversion.cpp, init.cpp, README.md)." \
+            --label "conflicts"
