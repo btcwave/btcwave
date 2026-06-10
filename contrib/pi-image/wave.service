@@ -1,0 +1,19 @@
+[Unit]
+Description=Bitcoin Wave Node
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=forking
+User=wave
+Group=wave
+ExecStart=/usr/local/bin/bitcoind -daemon -conf=/etc/wave/bitcoin.conf -datadir=/var/lib/wave
+ExecStop=/usr/local/bin/bitcoin-cli -conf=/etc/wave/bitcoin.conf stop
+Restart=on-failure
+RestartSec=30
+TimeoutStartSec=0
+TimeoutStopSec=600
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

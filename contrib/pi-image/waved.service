@@ -1,0 +1,15 @@
+[Unit]
+Description=Bitcoin Wave Management Daemon
+After=wave.service
+Requires=wave.service
+
+[Service]
+Type=simple
+User=wave
+Group=wave
+ExecStart=/usr/local/bin/waved --datadir /var/lib/wave --api-port 8380
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
