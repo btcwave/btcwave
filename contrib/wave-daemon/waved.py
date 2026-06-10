@@ -141,7 +141,8 @@ class WaveDaemon:
                  manage_process: bool = False,
                  bitcoind_path: str = "bitcoind",
                  conf_path: Path | None = None,
-                 dashboard_dir: Path | None = None):
+                 dashboard_dir: Path | None = None,
+                 bind_address: str = "127.0.0.1"):
         self.datadir = datadir
         self.rpc_port = rpc_port
         self.api_port = api_port
@@ -150,6 +151,7 @@ class WaveDaemon:
         self.bitcoind_path = bitcoind_path
         self.conf_path = conf_path
         self.dashboard_dir = dashboard_dir
+        self.bind_address = bind_address
         self.status = NodeStatus()
         self.running = False
         self._history: deque[StatusSnapshot] = deque(maxlen=DEFAULT_HISTORY_SIZE)
@@ -446,8 +448,8 @@ class WaveDaemon:
             def log_message(self, format, *args):
                 pass
 
-        server = HTTPServer(("127.0.0.1", self.api_port), Handler)
-        log.info("API listening on 127.0.0.1:%d", self.api_port)
+        server = HTTPServer((daemon.bind_address, self.api_port), Handler)
+        log.info("API listening on %s:%d", daemon.bind_address, self.api_port)
         server.serve_forever()
 
 
@@ -489,6 +491,10 @@ def main():
         help="Directory containing dashboard HTML (serves at /)",
     )
     parser.add_argument(
+        "--bind", default="127.0.0.1",
+        help="Bind address for API server (default: 127.0.0.1, use 0.0.0.0 for LAN access)",
+    )
+    parser.add_argument(
         "--version", action="version", version=f"waved {VERSION}",
     )
     args = parser.parse_args()
@@ -502,6 +508,7 @@ def main():
         bitcoind_path=args.bitcoind,
         conf_path=args.conf,
         dashboard_dir=args.dashboard_dir,
+        bind_address=args.bind,
     )
 
     signal.signal(signal.SIGINT, daemon.stop)

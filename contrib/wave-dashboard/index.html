@@ -262,7 +262,7 @@ footer {
 </div>
 
 <script>
-// When served by waved, API is same origin. When served separately, override.
+// When served by waved, API is same origin (works for both localhost and LAN access).
 const API = window.WAVED_API || window.location.origin;
 
 function fmt(n) {
