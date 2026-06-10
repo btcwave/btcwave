@@ -18,7 +18,7 @@ RUN <<EORUN
 
 ${red}ERROR: RDTS_CONSENT is not set.
 
-This version of Bitcoin Knots applies the BIP110 (RDTS) network upgrade, which fixes critical vulnerabilities in long-standing network design. To avoid applying this upgrade by accident, please choose whether to accept it now, or defer explicit confirmation until runtime.
+This version of Bitcoin Wave applies the BIP110 (RDTS) network upgrade, which fixes critical vulnerabilities in long-standing network design. To avoid applying this upgrade by accident, please choose whether to accept it now, or defer explicit confirmation until runtime.
 
 Important: Because this upgrade already has broad community support, reverting to an older software version does not reject it. Running outdated software after any network upgrade only leaves your node vulnerable to displaying fake or fraudulent transactions. To effectively reject this upgrade, you need to run alternative software designed to split away from the upgraded network.
 
@@ -31,7 +31,7 @@ Or to defer explicit confirmation until runtime (via consensusrules=rdts config 
   --build-arg RDTS_CONSENT=RUNTIME_CHECK    (exits if absent)
   --build-arg RDTS_CONSENT=RUNTIME_WARN     (warns hourly if absent)
 
-For more information, see: https://bitcoinknots.org/learn/2026-rdts ${term_reset}
+For more information, see: https://btcwave.app/learn/2026-rdts ${term_reset}
 EOF
             exit 1
             ;;
@@ -86,7 +86,7 @@ RUN strip --strip-unneeded /usr/local/bin/*
 FROM alpine:3.22 AS final
 
 ARG RDTS_CONSENT
-LABEL org.bitcoinknots.rdts_consent="${RDTS_CONSENT}"
+LABEL app.btcwave.rdts_consent="${RDTS_CONSENT}"
 
 ARG USER_ID=1000
 ARG GROUP_ID=1000
@@ -97,16 +97,18 @@ RUN apk add --no-cache \
     zeromq \
     boost-system \
     boost-filesystem \
-    boost-program_options
+    boost-program_options \
+    python3
 
 COPY --from=builder /usr/local/bin/bitcoind     /usr/local/bin/bitcoind
 COPY --from=builder /usr/local/bin/bitcoin-cli  /usr/local/bin/bitcoin-cli
+COPY contrib/wave-daemon/waved.py               /usr/local/bin/waved
 
 RUN addgroup -S -g ${GROUP_ID} bitcoin && \
     adduser -S -u ${USER_ID} -G bitcoin -H -s /bin/false bitcoin
 
 WORKDIR /var/lib/bitcoind
-EXPOSE 8333 8332
+EXPOSE 8333 8332 8380
 USER bitcoin
 VOLUME ["/var/lib/bitcoind", "/etc/bitcoin/bitcoin.conf"]
 
