@@ -242,6 +242,19 @@ footer {
     </table>
   </div>
 
+  <div class="card" id="chat-section" style="margin-top:24px">
+    <div class="section-title">Wave Assistant</div>
+    <div id="chat-messages" style="max-height:400px;overflow-y:auto;margin-bottom:16px;padding:8px 0"></div>
+    <div style="display:flex;gap:8px">
+      <input type="text" id="chat-input" placeholder="Ask about your node..."
+        style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:var(--font);font-size:14px;outline:none"
+        onkeydown="if(event.key==='Enter')sendChat()">
+      <button onclick="sendChat()"
+        style="background:var(--accent);color:white;border:none;border-radius:8px;padding:10px 20px;cursor:pointer;font-size:14px;font-family:var(--font)">Send</button>
+    </div>
+    <div id="chat-usage" style="font-size:12px;color:var(--muted);margin-top:8px"></div>
+  </div>
+
   <footer>
     <span>Bitcoin Wave Dashboard</span>
     <span id="footer-versions"></span>
@@ -362,6 +375,65 @@ async function updateVersions() {
     document.getElementById('footer-versions').textContent =
       `waved ${v.waved} / ${v.node}`;
   } catch (e) {}
+}
+
+// Chat
+const CHAT_API = window.WAVE_CHAT_API || window.location.origin.replace(/:\d+$/, ':8390');
+const chatToken = localStorage.getItem('wave_token') || '';
+const chatHistory = [];
+
+function addChatMessage(role, text) {
+  const el = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.style.cssText = `margin-bottom:12px;padding:10px 14px;border-radius:8px;font-size:14px;line-height:1.6;${
+    role === 'user'
+      ? 'background:var(--accent);color:white;margin-left:20%;text-align:right'
+      : 'background:var(--bg);border:1px solid var(--border);margin-right:20%'
+  }`;
+  div.textContent = text;
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+
+  addChatMessage('user', msg);
+  chatHistory.push({role: 'user', content: msg});
+
+  if (!chatToken) {
+    addChatMessage('assistant', 'Set your subscription token in Settings to use the chat assistant. For now, try managing your node from the dashboard above.');
+    return;
+  }
+
+  try {
+    const res = await fetch(CHAT_API + '/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${chatToken}`,
+      },
+      body: JSON.stringify({messages: chatHistory}),
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      const text = data.response?.[0]?.text || 'No response';
+      addChatMessage('assistant', text);
+      chatHistory.push({role: 'assistant', content: text});
+      if (data.usage) {
+        document.getElementById('chat-usage').textContent =
+          `${data.usage.messages_remaining} messages remaining this month`;
+      }
+    } else {
+      addChatMessage('assistant', data.error || 'Error communicating with assistant');
+    }
+  } catch (e) {
+    addChatMessage('assistant', 'Cannot reach chat service. Is the proxy running?');
+  }
 }
 
 updateStatus();
