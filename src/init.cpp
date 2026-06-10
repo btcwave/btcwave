@@ -1121,8 +1121,13 @@ bool AppInitParameterInteraction(const ArgsManager& args)
     }
 
     if (args.GetIntArg("-prune", 0)) {
-        if (args.GetBoolArg("-txindex", DEFAULT_TXINDEX))
-            return InitError(_("Prune mode is incompatible with -txindex."));
+        if (args.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {
+            if (args.IsArgSet("-txindex")) {
+                return InitError(_("Prune mode is incompatible with -txindex."));
+            }
+            LogPrintf("Prune mode active: disabling default txindex\n");
+            args.ForceSetArg("-txindex", "0");
+        }
         if (args.GetBoolArg("-reindex-chainstate", false)) {
             return InitError(_("Prune mode is incompatible with -reindex-chainstate. Use full -reindex instead."));
         }
